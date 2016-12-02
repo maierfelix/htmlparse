@@ -10,8 +10,6 @@ import {
   getNameByLabel
 } from "../labels";
 
-import Node from "../nodes";
-
 export function parseRoot() {
   let node = {};
   let children = this.parseNodeList();

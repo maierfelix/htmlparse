@@ -1,7 +1,7 @@
 {
   "name": "htmlparse",
   "version": "0.0.4",
-  "description": "HTML parser",
+  "description": "Minimal blazing fast HTML parser",
   "license": "MIT",
   "repository": {
     "type": "git",

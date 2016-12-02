@@ -36,7 +36,7 @@ let ast = parser.parse(str); // returns ast
 ```
 
 #### serialize
-Use `serialize(ast)` to serialize a parsed given AST back into it's relative string
+Use `serialize(ast)` to serialize an AST back into it's relative string
 ```js
 let ast = parser.serialize(ast); // returns string
 ```

@@ -59,7 +59,6 @@ export default class Lexer {
     }
     // unexpected
     throw new Error(`Unexpected token ${String.fromCharCode(cc)}`);
-    return void 0;
   }
 
   scanAlpha(cc) {
@@ -95,6 +94,26 @@ export default class Lexer {
     let kind = TokenKind.StringLiteral;
     let value = this.src.slice(start+1, this.idx);
     this.pushToken(kind, start, value);
+  }
+
+  pushToken(kind, start, value) {
+    let length = (this.idx - start)-1;
+    let begin = (this.column - length);
+    let end = begin + length;
+    let token = {
+      kind: kind,
+      value: value,
+      line: this.line,
+      begin: begin,
+      end: end
+    };
+    this.tokens.push(token);
+  }
+
+  pushEOF() {
+    let kind = TokenKind.EOF;
+    let value = null;
+    this.pushToken(kind, 0, value);
   }
 
   next() {
@@ -144,26 +163,6 @@ export default class Lexer {
       cc === 32 ||
       cc === 160
     );
-  }
-
-  pushToken(kind, start, value) {
-    let length = (this.idx - start)-1;
-    let begin = (this.column - length);
-    let end = begin + length;
-    let token = {
-      kind: kind,
-      value: value,
-      line: this.line,
-      begin: begin,
-      end: end
-    };
-    this.tokens.push(token);
-  }
-
-  pushEOF() {
-    let kind = TokenKind.EOF;
-    let value = null;
-    this.pushToken(kind, 0, value);
   }
 
 }

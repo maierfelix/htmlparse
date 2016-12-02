@@ -22,5 +22,5 @@ module.exports = {
   Lexer: Lexer,
   Parser: Parser,
   parse: parse,
-  serialize: serialize
+  serialize: () => {}
 };

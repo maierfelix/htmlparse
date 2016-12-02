@@ -24,7 +24,9 @@
     "url": "https://github.com/maierfelix/htmlparse/issues"
   },
   "scripts": {
-    "build": "rollup -c rollup/config.build.js",
+    "build": "npm run dist && npm run minify",
+    "dist": "rollup -c rollup/config.build.js",
+    "minify": "rollup -c rollup/config.minify.js",
     "testme": "npm build && node test/index.js"
   },
   "engines": {

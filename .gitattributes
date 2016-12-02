@@ -6,6 +6,8 @@
 # Make GitHub ignore vendor libraries while computing language stats.
 # See https://github.com/github/linguist#overrides.
 
+test/* linguist-vendored=true
+
 *.proto linguist-vendored=true
 *.sh linguist-vendored=true
 *.bat linguist-vendored=true

@@ -1,6 +1,5 @@
 import {
   TokenKind as TT,
-  KeywordKind as KK,
   PunctuatorKind as PP,
   getNameByLabel
 } from "../labels";
@@ -71,6 +70,13 @@ export default class Parser {
     return (false);
   }
 
+  subsequent(kind) {
+    this.next();
+    let result = this.peek(kind);
+    this.back();
+    return (result);
+  }
+
   next() {
     if (this.idx < this.limit) {
       this.current = this.tokens[++this.idx];
@@ -90,7 +96,7 @@ export default class Parser {
 
   throw(msg, token) {
     let range = token.range;
-    throw new Error(msg + ` at ${range.line}:${range.start}`);
+    throw new Error(msg);
   }
 
 }

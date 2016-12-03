@@ -1,15 +1,12 @@
 import {
-  TokenKind,
-  KeywordKind,
-  PunctuatorKind
+  TokenKind as TT,
+  PunctuatorKind as PP
 } from "../labels";
 
 export default class Lexer {
 
   constructor() {
     this.idx = 0;
-    this.line = 0;
-    this.column = 0;
     this.tokens = [];
     this.src = "";
     this.length = 0;
@@ -17,8 +14,6 @@ export default class Lexer {
 
   reset() {
     this.idx = -1;
-    this.line = 1;
-    this.column = 0;
     this.tokens = [];
   }
 
@@ -28,13 +23,10 @@ export default class Lexer {
     this.length = src.length;
     let cc = 0;
     while (cc = this.next()) {
-      if (this.isWhitespace(cc)) continue;
-      // ignore token, increment line and reset column idx
-      if (this.isLineTerminator(cc)) {
-        this.line++;
-        this.column = 0;
-        continue;
-      }
+      if (
+        this.isWhitespace(cc) ||
+        this.isLineTerminator(cc)
+      ) continue;
       this.scanToken(cc);
     };
     this.pushEOF();
@@ -48,7 +40,7 @@ export default class Lexer {
       return void 0;
     }
     // punctuator
-    if (this.isPunctuator(String.fromCharCode(cc))) {
+    if (this.isPunctuator(cc)) {
       this.scanPunctuator(cc);
       return void 0;
     }
@@ -68,22 +60,14 @@ export default class Lexer {
     };
     let value = this.src.slice(start, this.idx);
     let kind = null;
-    if (this.isKeyword(value)){
-      kind = KeywordKind[value];
-    } else {
-      kind = TokenKind.Identifier;
-    }
-    this.column--;
-    this.pushToken(kind, start, value);
+    kind = TT.Identifier;
+    this.pushToken(kind, value);
     this.idx--;
   }
 
   scanPunctuator(cc) {
     let ch = String.fromCharCode(cc);
-    if (this.isPunctuator(ch)) {
-      let kind = PunctuatorKind[ch];
-      this.pushToken(kind, this.idx-1, ch);
-    }
+    this.pushToken(PP[ch], ch);
   }
 
   scanString(cc) {
@@ -91,46 +75,43 @@ export default class Lexer {
     while (cc = this.next()) {
       if (this.isQuote(cc)) break;
     };
-    let kind = TokenKind.StringLiteral;
+    let kind = TT.StringLiteral;
     let value = this.src.slice(start+1, this.idx);
-    this.pushToken(kind, start, value);
+    this.pushToken(kind, value);
   }
 
-  pushToken(kind, start, value) {
-    let length = (this.idx - start)-1;
-    let begin = (this.column - length);
-    let end = begin + length;
-    let token = {
+  pushToken(kind, value) {
+    this.tokens.push({
       kind: kind,
-      value: value,
-      line: this.line,
-      begin: begin,
-      end: end
-    };
-    this.tokens.push(token);
+      value: value
+    });
   }
 
   pushEOF() {
-    let kind = TokenKind.EOF;
-    let value = null;
-    this.pushToken(kind, 0, value);
+    let kind = TT.EOF;
+    let value = "";
+    this.pushToken(kind, value);
   }
 
   next() {
     if (++this.idx < this.length) {
-      this.column++;
       return (this.src[this.idx].charCodeAt(0));
     } else {
       return (0);
     }
   }
 
-  isKeyword(str) {
-    return (KeywordKind[str] !== void 0);
-  }
-
-  isPunctuator(str) {
-    return (PunctuatorKind[str] !== void 0);
+  // we need max performance here
+  // so this stuff is hardcoded =^ ./labels
+  isPunctuator(cc) {
+    return (
+      cc === 60 || // =
+      cc === 62 || // <
+      cc === 61 || // >
+      cc === 47 || // /
+      cc === 45 || // -
+      cc === 33    // !
+    );
   }
 
   isQuote(cc) {

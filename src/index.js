@@ -10,14 +10,6 @@ let parse = (str) => {
   return (ast);
 };
 
-/*
-let fs = require("fs");
-let path = "test/simple.html";
-let document = fs.readFileSync(process.cwd() + "/" + path, "utf8");
-
-console.log(JSON.stringify(parse(document), null, 2));
-*/
-
 module.exports = {
   Lexer: Lexer,
   Parser: Parser,

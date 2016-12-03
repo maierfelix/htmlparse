@@ -1,8 +1,3 @@
-/**
- * @param {Object} cls
- * @param {Object} prot
- * @export
- */
 export function inherit(cls, prot) {
 
   let key = null;

@@ -3,16 +3,7 @@ let idx = 0;
 export let VoidKind = {};
 export let TokenKind = {};
 export let ElementKind = {};
-export let KeywordKind = {};
 export let PunctuatorKind = {};
-
-((Label) => {
-
-  Label[Label["html"] = ++idx] = "HTML";
-  Label[Label["body"] = ++idx] = "BODY";
-  Label[Label["head"] = ++idx] = "HEAD";
-
-})(KeywordKind);
 
 ((Label) => {
 
@@ -83,9 +74,6 @@ export function getNameByLabel(kind) {
   }
   if (PunctuatorKind[kind] !== void 0) {
     return (PunctuatorKind[kind]);
-  }
-  if (KeywordKind[kind] !== void 0) {
-    return (KeywordKind[kind]);
   }
   return (null);
 };

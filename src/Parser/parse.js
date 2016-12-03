@@ -2,7 +2,6 @@ import {
   VoidKind as VV,
   TokenKind as TT,
   ElementKind as EE,
-  KeywordKind as KK,
   PunctuatorKind as PP
 } from "../labels";
 
@@ -11,48 +10,75 @@ import {
 } from "../labels";
 
 export function parseRoot() {
-  let node = {};
-  let children = this.parseNodeList();
-  node.children = children;
-  return (node);
+  return (this.parseNodeList());
 }
 
 export function parseNodeList() {
   let nodes = [];
-  while (!this.peek(PP.CTAG)) {
-    if (this.isEOF()) break;
-    nodes.push(this.parseNode());
+  while (true) {
+    if (this.isEOF() || this.peek(PP.CTAG)) break;
+    let node = this.parseNode();
+    nodes.push(node);
   };
   return (nodes);
 }
 
 export function parseNode() {
+
   let node = {};
+
+  // opening tag
   this.expect(PP.OTAG);
   let tag = this.consume().value;
   node.localName = tag;
   node.nodeType = EE.ELEMENT_NODE;
   let attrs = this.parseAttributes();
   node.attributes = attrs;
-  this.expect(PP.CTAG);
-  if (this.peek(PP.OTAG)) {
-    node.children = this.parseNodeList();
-  }
-  // parse closing tag
-  if (this.eat(PP.OTAG)) {
-    this.expect(PP.SLASH);
-    this.next();
+  // lazy closed
+  if (this.eat(PP.SLASH)) {
     this.expect(PP.CTAG);
+    return (node);
   }
+  this.expect(PP.CTAG);
+
+  node.children = this.parseNodeContent(tag);
+  if (!this.isEOF()) {
+    this.expectClosingNode();
+  }
+
   return (node);
+
+}
+
+export function parseNodeContent(tag) {
+  let nodes = [];
+  while (true) {
+    if (this.isEOF()) break;
+    // check if next tag closes parent node
+    if (this.subsequent(PP.SLASH)) {
+      if (this.tokens[this.idx + 2].value === tag) break;
+    }
+    let node = this.parseNode();
+    nodes.push(node);
+  };
+  return (nodes);
+}
+
+export function expectClosingNode() {
+  this.expect(PP.OTAG);
+  this.expect(PP.SLASH);
+  this.next(); // skip tag
+  this.parseAttributes(); // ignore attrs
+  this.expect(PP.CTAG);
 }
 
 export function parseAttributes() {
   let nodes = [];
-  while (!this.peek(PP.CTAG)) {
+  while (true) {
+    if (this.peek(PP.CTAG) || this.peek(PP.SLASH)) break;
     let node = {};
     node.nodeType = EE.ATTRIBUTE_NODE;
-    let id = this.consume().value;
+    node.name = this.consume().value;
     if (this.eat(PP.ASSIGN)) {
       node.nodeValue = this.consume().value;
     }

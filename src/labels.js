@@ -1,9 +1,30 @@
-let idx = 0;
+export const CC_LT = 60;
+export const CC_GT = 62;
+
+export const CC_ZERO = 48;
+export const CC_NINE = 57;
+
+export const CC_QUOTE = 39;
+export const CC_QUOTE2 = 34;
+
+export const CC_UCA = 65;
+export const CC_LCA = 97;
+export const CC_UCZ = 90;
+export const CC_LCZ = 122;
+
+export const CC_US = 95;
+export const CC_NOT = 33;
+export const CC_DOT = 46;
+export const CC_SLASH = 47;
+export const CC_MINUS = 45;
+export const CC_ASSIGN = 61;
 
 export let VoidKind = {};
 export let TokenKind = {};
 export let ElementKind = {};
 export let PunctuatorKind = {};
+
+let idx = 0;
 
 ((Label) => {
 
@@ -50,6 +71,7 @@ export let PunctuatorKind = {};
 
   Label[Label["EOF"] = ++idx] = "EOF";
   Label[Label["Identifier"] = ++idx] = "Identifier";
+  Label[Label["TextLiteral"] = ++idx] = "TextLiteral";
   Label[Label["StringLiteral"] = ++idx] = "StringLiteral";
   Label[Label["NumericLiteral"] = ++idx] = "NumericLiteral";
 

@@ -1,10 +1,13 @@
+import fs from "fs";
 import buble from "rollup-plugin-buble";
+
+let name = require("../package.json").name;
 
 export default {
   entry: "src/index.js",
-  moduleName: "parser",
+  moduleName: name,
   plugins: [ buble() ],
   targets: [
-    { dest: "dist/parser.js", format: "umd" }
+    { dest: `dist/${name}.js`, format: "umd" }
   ]
 };

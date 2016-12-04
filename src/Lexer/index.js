@@ -3,6 +3,25 @@ import {
   PunctuatorKind as PP
 } from "../labels";
 
+import {
+  CC_LT,
+  CC_GT,
+  CC_US,
+  CC_NOT,
+  CC_DOT,
+  CC_UCA,
+  CC_LCA,
+  CC_UCZ,
+  CC_LCZ,
+  CC_ZERO,
+  CC_NINE,
+  CC_SLASH,
+  CC_MINUS,
+  CC_QUOTE,
+  CC_QUOTE2,
+  CC_ASSIGN
+} from "../labels";
+
 export default class Lexer {
 
   constructor() {
@@ -22,11 +41,9 @@ export default class Lexer {
     this.src = src;
     this.length = src.length;
     let cc = 0;
-    while (cc = this.next()) {
-      if (
-        this.isWhitespace(cc) ||
-        this.isLineTerminator(cc)
-      ) continue;
+    while (true) {
+      if ((cc = this.next()) <= 0) break;
+      if (this.isBlank(cc)) continue;
       this.scanToken(cc);
     };
     this.pushEOF();
@@ -34,50 +51,132 @@ export default class Lexer {
   }
 
   scanToken(cc) {
-    // alpha most common, so placed here
-    if (this.isAlpha(cc)) {
-      this.scanAlpha(cc);
-      return void 0;
-    }
-    // punctuator
     if (this.isPunctuator(cc)) {
-      this.scanPunctuator(cc);
-      return void 0;
+      // tag open
+      if (cc === CC_LT) {
+        this.scanTagOpen();
+        return void 0;
+      }
     }
-    // quoted string
-    if (this.isQuote(cc)) {
-      this.scanString(cc);
-      return void 0;
-    }
-    // unexpected
-    throw new Error(`Unexpected token ${String.fromCharCode(cc)}`);
+    this.scanText();
+    return void 0;
   }
 
-  scanAlpha(cc) {
+  scanText() {
+    let cc = 0;
     let start = this.idx;
     while (cc = this.next()) {
-      if (!this.isAlpha(cc)) break;
+      if (cc === CC_LT) break;
     };
     let value = this.src.slice(start, this.idx);
-    let kind = null;
-    kind = TT.Identifier;
-    this.pushToken(kind, value);
+    this.pushToken(TT.TextLiteral, value);
     this.idx--;
   }
 
-  scanPunctuator(cc) {
-    let ch = String.fromCharCode(cc);
+  scanTagOpen() {
+    let cc = 0;
+    this.scanPunctuator();
+    while (true) {
+      if ((cc = this.next()) <= 0) break;
+      // string
+      if (this.isQuote(cc)) {
+        this.scanQuotedString();
+        continue;
+      }
+      // blank
+      if (this.isBlank(cc)) continue;
+      // alpha
+      if (this.isAlpha(cc)) {
+        this.scanAlpha();
+        continue;
+      }
+      // punctuator
+      if (this.isPunctuator(cc)) {
+        if (cc === CC_GT) {
+          this.scanTagClose();
+          break;
+        }
+        // comment open?
+        if (cc === CC_MINUS && this.src[this.idx + 1] === "-") {
+          this.scanComment(cc);
+          continue;
+        }
+        // attribute values can be unquoted
+        if (cc === CC_ASSIGN) {
+          this.scanEscapedAttribute();
+          continue;
+        }
+        this.scanPunctuator();
+        continue;
+      }
+      this.idx--;
+      break;
+    };
+  }
+
+  scanEscapedAttribute() {
+    let cc = 0;
+    this.scanPunctuator();
+    let next = this.src[this.idx+1].charCodeAt(0);
+    if (!this.isQuote(next)) {
+      let start = this.idx;
+      while (true) {
+        if ((cc = this.next()) <= 0) break;
+        if (this.isBlank(cc)) break;
+        if (this.isTag(cc)) break;
+        if (cc === CC_SLASH) {
+          if (this.src[this.idx+1] === ">") break;
+        }
+      };
+      let value = this.src.slice(start+1, this.idx);
+      this.pushToken(TT.StringLiteral, value);
+    }
+  }
+
+  scanComment(cc) {
+    this.idx++;
+    while (true) {
+      let last = cc;
+      if ((cc = this.next()) <= 0) break;
+      if (last === CC_MINUS && cc === CC_MINUS) break;
+    };
+    this.tokens.splice(this.tokens.length-2, 2);
+    this.idx++;
+  }
+
+  scanTagClose() {
+    this.scanPunctuator();
+  }
+
+  scanAlpha() {
+    let cc = 0;
+    let start = this.idx;
+    while (cc = this.next()) {
+      if (
+        !this.isAlpha(cc) &&
+        !this.isNumber(cc) &&
+        !(cc === CC_MINUS || cc === CC_DOT || cc === CC_US)
+      ) break;
+    };
+    let value = this.src.slice(start, this.idx);
+    this.pushToken(TT.Identifier, value);
+    this.idx--;
+  }
+
+  scanPunctuator() {
+    let ch = this.src[this.idx];
     this.pushToken(PP[ch], ch);
   }
 
-  scanString(cc) {
+  scanQuotedString() {
+    let cc = 0;
     let start = this.idx;
-    while (cc = this.next()) {
+    while (true) {
+      if ((cc = this.next()) <= 0) break;
       if (this.isQuote(cc)) break;
     };
-    let kind = TT.StringLiteral;
     let value = this.src.slice(start+1, this.idx);
-    this.pushToken(kind, value);
+    this.pushToken(TT.StringLiteral, value);
   }
 
   pushToken(kind, value) {
@@ -88,9 +187,8 @@ export default class Lexer {
   }
 
   pushEOF() {
-    let kind = TT.EOF;
     let value = "";
-    this.pushToken(kind, value);
+    this.pushToken(TT.EOF, value);
   }
 
   next() {
@@ -101,48 +199,62 @@ export default class Lexer {
     }
   }
 
-  // we need max performance here
-  // so this stuff is hardcoded =^ ./labels
+  isTag(cc) {
+    return (
+      cc === CC_LT ||
+      cc === CC_GT
+    );
+  }
+
   isPunctuator(cc) {
     return (
-      cc === 60 || // =
-      cc === 62 || // <
-      cc === 61 || // >
-      cc === 47 || // /
-      cc === 45 || // -
-      cc === 33    // !
+      cc === CC_LT ||
+      cc === CC_GT ||
+      cc === CC_NOT ||
+      cc === CC_ASSIGN ||
+      cc === CC_SLASH ||
+      cc === CC_MINUS
+    );
+  }
+
+  isNumber(cc) {
+    return (
+      cc >= CC_ZERO && cc <= CC_NINE
     );
   }
 
   isQuote(cc) {
     return (
-      cc === 34 ||
-      cc === 39
+      cc === CC_QUOTE ||
+      cc === CC_QUOTE2
     );
   }
 
   isLineTerminator(cc) {
     return (
-      cc === 10 ||
-      cc === 13
+      cc === 0xa ||
+      cc === 0xd
+    );
+  }
+
+  isBlank(cc) {
+    return (
+      // line terminators
+      cc === 0xa ||
+      cc === 0xd ||
+      // whitespace etc
+      cc === 0x9 ||
+      cc === 0xb ||
+      cc === 0xc ||
+      cc === 0x20 ||
+      cc === 0xa0
     );
   }
 
   isAlpha(cc) {
     return (
-      cc >= 65 && cc <= 90 ||
-      cc >= 97 && cc <= 122 ||
-      cc === 95
-    );
-  }
-
-  isWhitespace(cc) {
-    return (
-      cc === 9 ||
-      cc === 11 ||
-      cc === 12 ||
-      cc === 32 ||
-      cc === 160
+      cc >= CC_UCA && cc <= CC_UCZ ||
+      cc >= CC_LCA && cc <= CC_LCZ
     );
   }
 

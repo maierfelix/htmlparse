@@ -10,9 +10,8 @@ let parse = (str) => {
   return (ast);
 };
 
-module.exports = {
-  Lexer: Lexer,
-  Parser: Parser,
-  parse: parse,
-  serialize: () => {}
-};
+export {
+  Lexer,
+  Parser,
+  parse
+}

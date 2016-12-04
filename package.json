@@ -1,6 +1,6 @@
 {
   "name": "htmlparse",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Minimal blazing fast HTML parser",
   "license": "MIT",
   "repository": {
@@ -24,11 +24,11 @@
     "url": "https://github.com/maierfelix/htmlparse/issues"
   },
   "scripts": {
-    "start": "npm run dist && node dist/parser",
+    "start": "npm run dist && node dist/htmlparse",
     "build": "npm run dist && npm run minify",
     "dist": "rollup -c rollup/config.build.js",
     "minify": "rollup -c rollup/config.minify.js",
-    "testme": "npm build && node test/index.js",
+    "test": "npm run build && node test/index.js",
     "benchmark": "npm run build && cd benchmark && node parse5.js && node parse.js"
   },
   "engines": {

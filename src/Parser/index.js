@@ -72,9 +72,9 @@ export default class Parser {
 
   subsequent(kind) {
     this.next();
-    let result = this.peek(kind);
+    let tmp = this.peek(kind);
     this.back();
-    return (result);
+    return (tmp);
   }
 
   next() {

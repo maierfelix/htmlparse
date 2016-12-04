@@ -1,13 +1,13 @@
 {
   "name": "htmlparse",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Minimal blazing fast HTML parser",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/maierfelix/htmlparse.git"
   },
-  "main": "dist/parser.js",
+  "main": "dist/htmlparse.js",
   "keywords": [
     "html",
     "dom",

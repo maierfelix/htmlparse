@@ -1,5 +1,5 @@
 <div align="center">
-  <h3>A minimal blazing fast HTML parser.</h3>
+  <h3>A minimal blazing fast HTML parser with zero dependencies.</h3>
 </div>
 
 <div align="center">
